@@ -174,26 +174,22 @@ fn notmain() -> anyhow::Result<i32> {
             )
         })?;
 
-    let (mut table, locs) = {
-        let table = defmt_decoder::Table::parse(&bytes)?;
+    // generate `defmt_decoder::Table` and `defmt_decoder::Locations`
+    let mut table = defmt_decoder::Table::parse(&bytes)?;
+    let locs = if let Some(table) = table.as_ref() {
+        let locs = table.get_locations(&bytes)?;
 
-        let locs = if let Some(table) = table.as_ref() {
-            let locs = table.get_locations(&bytes)?;
-
-            if !table.is_empty() && locs.is_empty() {
-                log::warn!("insufficient DWARF info; compile your program with `debug = 2` to enable location info");
-                None
-            } else if table.indices().all(|idx| locs.contains_key(&(idx as u64))) {
-                Some(locs)
-            } else {
-                log::warn!("(BUG) location info is incomplete; it will be omitted from the output");
-                None
-            }
-        } else {
+        if !table.is_empty() && locs.is_empty() {
+            log::warn!("insufficient DWARF info; compile your program with `debug = 2` to enable location info");
             None
-        };
-
-        (table, locs)
+        } else if table.indices().all(|idx| locs.contains_key(&(idx as u64))) {
+            Some(locs)
+        } else {
+            log::warn!("(BUG) location info is incomplete; it will be omitted from the output");
+            None
+        }
+    } else {
+        None
     };
 
     // sections used in cortex-m-rt
