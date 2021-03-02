@@ -271,24 +271,6 @@ fn notmain() -> anyhow::Result<i32> {
 
     let vector_table = vector_table.ok_or_else(|| anyhow!("`.vector_table` section is missing"))?;
     log::debug!("vector table: {:x?}", vector_table);
-    let sp_ram_region = target
-        .memory_map
-        .iter()
-        .filter_map(|region| match region {
-            MemoryRegion::Ram(region) => {
-                // NOTE stack is full descending; meaning the stack pointer can be `ORIGIN(RAM) +
-                // LENGTH(RAM)`
-                let range = region.range.start..=region.range.end;
-                if range.contains(&vector_table.initial_sp) {
-                    Some(region)
-                } else {
-                    None
-                }
-            }
-            _ => None,
-        })
-        .next()
-        .cloned();
 
     let probes = Probe::list_all();
     let probes = if let Some(probe_opt) = opts.probe.as_deref() {
@@ -539,7 +521,7 @@ fn notmain() -> anyhow::Result<i32> {
         debug_frame,
         &elf,
         &vector_table,
-        &sp_ram_region,
+        &ram_region,
         &live_functions,
         &current_dir,
     )?;
@@ -618,7 +600,7 @@ fn backtrace(
     debug_frame: &[u8],
     elf: &ElfFile,
     vector_table: &VectorTable,
-    sp_ram_region: &Option<RamRegion>,
+    ram_region: &Option<RamRegion>,
     live_functions: &HashSet<&str>,
     current_dir: &Path,
 ) -> anyhow::Result<Option<TopException>> {
@@ -706,10 +688,10 @@ fn backtrace(
             top_exception = Some(if pc & !THUMB_BIT == vector_table.hard_fault & !THUMB_BIT {
                 // HardFaultTrampoline
 
-                let stack_overflow = if let Some(sp_ram_region) = sp_ram_region {
+                let stack_overflow = if let Some(ram_region) = ram_region {
                     // NOTE stack is full descending; meaning the stack pointer can be `ORIGIN(RAM) +
                     // LENGTH(RAM)`
-                    let range = sp_ram_region.range.start..=sp_ram_region.range.end;
+                    let range = ram_region.range.start..=ram_region.range.end;
                     !range.contains(&sp)
                 } else {
                     log::warn!(
