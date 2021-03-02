@@ -109,8 +109,7 @@ fn notmain() -> anyhow::Result<i32> {
     let verbose = opts.verbose;
     defmt_decoder::log::init_logger(verbose, move |metadata| {
         if defmt_decoder::log::is_defmt_frame(metadata) {
-            // We want to display *all* defmt frames.
-            true
+            true // We want to display *all* defmt frames.
         } else {
             // Host logs use `info!` as the default level, but with the `verbose` flag set we log at
             // `trace!` level instead.
@@ -122,6 +121,7 @@ fn notmain() -> anyhow::Result<i32> {
         }
     });
 
+    // handle `--version`, `--list-probes`, `--list-chips`
     if opts.version {
         print_version();
         return Ok(EXIT_SUCCESS);
@@ -197,6 +197,7 @@ fn notmain() -> anyhow::Result<i32> {
     // NOTE we don't load `.bss` because the app (cortex-m-rt) will zero it
     let candidates = [".vector_table", ".text", ".rodata", ".data"];
 
+    // load sections from elf-file
     let mut highest_ram_addr_in_use = 0;
     let mut debug_frame = None;
     let mut sections = vec![];
@@ -400,6 +401,7 @@ fn notmain() -> anyhow::Result<i32> {
     // wait for breakpoint
     let stdout = io::stdout();
     let mut stdout = stdout.lock();
+
     let mut read_buf = [0; 1024];
     let mut frames = vec![];
     let mut was_halted = false;
