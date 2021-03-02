@@ -133,12 +133,16 @@ fn notmain() -> anyhow::Result<i32> {
         return Ok(EXIT_SUCCESS);
     }
 
-    let elf_path = opts.elf.as_deref().unwrap();
-    let chip = opts.chip.as_deref().unwrap();
+    // get target with chip model and memory map
+    let target = {
+        let chip = opts.chip.unwrap();
+        probe_rs::config::registry::get_target_by_name(chip)?
+    };
+
+    // read raw bytes; parse as elf-file
+    let elf_path = &opts.elf.unwrap();
     let bytes = fs::read(elf_path)?;
     let elf = ElfFile::parse(&bytes)?;
-
-    let target = probe_rs::config::registry::get_target_by_name(chip)?;
 
     // find and report the RAM region
     let mut ram_region = None;
