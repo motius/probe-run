@@ -691,16 +691,13 @@ fn backtrace(
                 let stack_overflow = if let Some(ram_region) = ram_region {
                     // NOTE stack is full descending; meaning the stack pointer can be `ORIGIN(RAM) +
                     // LENGTH(RAM)`
-                    let range = ram_region.range.start..=ram_region.range.end;
-                    !range.contains(&sp)
+                    !ram_region.range.contains(&sp)
                 } else {
                     log::warn!(
                         "no RAM region appears to contain the stack; cannot determine if this was a stack overflow"
                     );
-
                     false
                 };
-
                 TopException::HardFault { stack_overflow }
             } else {
                 TopException::Other
