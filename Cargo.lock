@@ -20,12 +20,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ee2a4ec343196209d6594e19543ae87a39f96d5534d7174822a3ad825dd6ed7e"
 
 [[package]]
-name = "adler32"
-version = "1.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aae1277d39aeec15cb388266ecc24b11c80469deae6067e17a1a7aa9e5c1f234"
-
-[[package]]
 name = "ansi_term"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -259,18 +253,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4443176a9f2c162692bd3d352d745ef9413eec5782a80d8fd6f8a1ac692a07f7"
 
 [[package]]
-name = "filetime"
-version = "0.2.14"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1d34cfa13a63ae058bfa601fe9e313bbdb3746427c1459185464ce0fcf62e1e8"
-dependencies = [
- "cfg-if",
- "libc",
- "redox_syscall",
- "winapi",
-]
-
-[[package]]
 name = "flate2"
 version = "1.0.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -387,13 +369,12 @@ checksum = "dd25036021b0de88a0aff6b850051563c6516d0bf53f8638938edbb9de732736"
 [[package]]
 name = "jaylink"
 version = "0.1.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e04098e968466cf76f8e5f34f890a3dfde1571aa9df80a3b229c3b002425c859"
+source = "git+https://github.com/jonas-schievink/jaylink#7a0645b299aef6aa325b25215813582e71ee4c19"
 dependencies = [
  "bitflags",
  "byteorder",
  "log",
- "rusb 0.6.3",
+ "rusb",
 ]
 
 [[package]]
@@ -422,32 +403,6 @@ name = "libc"
 version = "0.2.86"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b7282d924be3275cec7f6756ff4121987bc6481325397dde6ba3e7802b1a8b1c"
-
-[[package]]
-name = "libflate"
-version = "0.1.27"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d9135df43b1f5d0e333385cb6e7897ecd1a43d7d11b91ac003f4d2c2d2401fdd"
-dependencies = [
- "adler32",
- "crc32fast",
- "rle-decode-fast",
- "take_mut",
-]
-
-[[package]]
-name = "libusb1-sys"
-version = "0.3.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e0318f131edc8211a9a3e40133be6fc93f0b686e14f59c6115eab4e7bd794b34"
-dependencies = [
- "cc",
- "libc",
- "libflate",
- "pkg-config",
- "tar",
- "vcpkg",
-]
 
 [[package]]
 name = "libusb1-sys"
@@ -523,7 +478,7 @@ checksum = "3831453b3449ceb48b6d9c7ad7c96d5ea673e9b470a1dc578c2ce6521230884c"
 [[package]]
 name = "probe-rs"
 version = "0.10.1"
-source = "git+https://github.com/probe-rs/probe-rs#2445d24ce58788d658e1f51c1fffc25b1aac9064"
+source = "git+https://github.com/urhengulas/probe-rs?branch=minimize-deps#777bc091f5272490cdc6cff228878d05061039e9"
 dependencies = [
  "anyhow",
  "base64",
@@ -543,7 +498,7 @@ dependencies = [
  "num-traits",
  "object",
  "probe-rs-target",
- "rusb 0.7.0",
+ "rusb",
  "scroll",
  "serde",
  "serde_yaml",
@@ -555,7 +510,7 @@ dependencies = [
 [[package]]
 name = "probe-rs-rtt"
 version = "0.10.1"
-source = "git+https://github.com/probe-rs/probe-rs-rtt#35b51734dcf209bcaa6a30522d9dbce84e5187b2"
+source = "git+https://github.com/urhengulas/probe-rs-rtt#88a96f5c71a80828e6636bf982b6eef84c1b6716"
 dependencies = [
  "log",
  "probe-rs",
@@ -566,7 +521,7 @@ dependencies = [
 [[package]]
 name = "probe-rs-target"
 version = "0.1.0"
-source = "git+https://github.com/probe-rs/probe-rs#2445d24ce58788d658e1f51c1fffc25b1aac9064"
+source = "git+https://github.com/urhengulas/probe-rs?branch=minimize-deps#777bc091f5272490cdc6cff228878d05061039e9"
 dependencies = [
  "base64",
  "jep106",
@@ -644,38 +599,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "941ba9d78d8e2f7ce474c015eea4d9c6d25b6a3327f9832ee29a4de27f91bbb8"
 
 [[package]]
-name = "redox_syscall"
-version = "0.2.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "94341e4e44e24f6b591b59e47a8a027df12e008d73fd5672dbea9cc22f4507d9"
-dependencies = [
- "bitflags",
-]
-
-[[package]]
-name = "rle-decode-fast"
-version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cabe4fa914dec5870285fa7f71f602645da47c486e68486d2b4ceb4a343e90ac"
-
-[[package]]
 name = "rusb"
-version = "0.6.3"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "327ba984f811d7e34f52f08b5745911ce89c432e1098879f2f8288c76a88aa0c"
+checksum = "12f3264859095257507e4c011ab420ff9b2d9cc3349c6c08a1d3a019260bb437"
 dependencies = [
  "libc",
- "libusb1-sys 0.3.6",
-]
-
-[[package]]
-name = "rusb"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c470dc7dc6e4710b6f85e9c4aa4650bc742260b39a36328180578db76fa258c1"
-dependencies = [
- "libc",
- "libusb1-sys 0.5.0",
+ "libusb1-sys",
 ]
 
 [[package]]
@@ -842,27 +772,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "take_mut"
-version = "0.2.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f764005d11ee5f36500a149ace24e00e3da98b0158b3e2d53a7495660d3f4d60"
-
-[[package]]
 name = "tap"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "55937e1799185b12863d447f42597ed69d9928686b8d88a1df17376a097d8369"
-
-[[package]]
-name = "tar"
-version = "0.4.32"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0313546c01d59e29be4f09687bcb4fb6690cec931cc3607b6aec7a0e417f4cc6"
-dependencies = [
- "filetime",
- "libc",
- "xattr",
-]
 
 [[package]]
 name = "textwrap"
@@ -968,15 +881,6 @@ name = "wyz"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "85e60b0d1b5f99db2556934e21937020776a5d31520bf169e851ac44e6420214"
-
-[[package]]
-name = "xattr"
-version = "0.2.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "244c3741f4240ef46274860397c7c74e50eb23624996930e484c16679633a54c"
-dependencies = [
- "libc",
-]
 
 [[package]]
 name = "yaml-rust"
