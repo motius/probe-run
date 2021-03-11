@@ -8,7 +8,7 @@ dependencies = [
  "cpp_demangle",
  "fallible-iterator",
  "gimli",
- "object 0.23.0",
+ "object",
  "rustc-demangle",
  "smallvec",
 ]
@@ -200,7 +200,7 @@ dependencies = [
 [[package]]
 name = "defmt-decoder"
 version = "0.2.0"
-source = "git+https://github.com/knurling-rs/defmt?tag=defmt-decoder-v0.2.0#60c6447f8ecbc4ff023378ba6905bcd0de1e679f"
+source = "git+https://github.com/knurling-rs/defmt?branch=bump-object#d29f64f8fc6341b9ab9415f39c95a716291cfff9"
 dependencies = [
  "ansi_term 0.12.1",
  "anyhow",
@@ -211,7 +211,7 @@ dependencies = [
  "gimli",
  "leb128",
  "log",
- "object 0.22.0",
+ "object",
  "ryu",
  "semver",
  "serde",
@@ -221,7 +221,7 @@ dependencies = [
 [[package]]
 name = "defmt-parser"
 version = "0.2.0"
-source = "git+https://github.com/knurling-rs/defmt?tag=defmt-decoder-v0.2.0#60c6447f8ecbc4ff023378ba6905bcd0de1e679f"
+source = "git+https://github.com/knurling-rs/defmt?branch=bump-object#d29f64f8fc6341b9ab9415f39c95a716291cfff9"
 
 [[package]]
 name = "difference"
@@ -497,12 +497,6 @@ dependencies = [
 
 [[package]]
 name = "object"
-version = "0.22.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8d3b63360ec3cb337817c2dbd47ab4a0f170d285d8e5a2064600f3def1402397"
-
-[[package]]
-name = "object"
 version = "0.23.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a9a7ab5d64814df0fe4a4b5ead45ed6c5f181ee3ff04ba344313a6c80446c5d4"
@@ -547,7 +541,7 @@ dependencies = [
  "lazy_static",
  "log",
  "num-traits",
- "object 0.23.0",
+ "object",
  "probe-rs-target",
  "rusb 0.7.0",
  "scroll",
@@ -593,7 +587,7 @@ dependencies = [
  "gimli",
  "hidapi",
  "log",
- "object 0.23.0",
+ "object",
  "probe-rs",
  "probe-rs-rtt",
  "rustc-demangle",
