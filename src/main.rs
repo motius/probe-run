@@ -31,7 +31,7 @@ use object::{
     ObjectSegment, ObjectSymbol, SymbolSection,
 };
 use probe_rs::{
-    config::{registry, MemoryRegion, RamRegion},
+    config::{MemoryRegion, RamRegion},
     flashing::{self, Format},
     Core, DebugProbeInfo, MemoryInterface, Probe, Session,
 };
@@ -148,7 +148,7 @@ fn notmain() -> anyhow::Result<i32> {
     let bytes = fs::read(elf_path)?;
     let elf = ElfFile::parse(&bytes)?;
 
-    let target = probe_rs::config::registry::get_target_by_name(chip)?;
+    let target = probe_rs::config::get_target_by_name(chip)?;
 
     // find and report the RAM region
     let mut ram_region = None;
@@ -901,7 +901,7 @@ fn probes_filter(probes: &[DebugProbeInfo], selector: &ProbeFilter) -> Vec<Debug
 }
 
 fn print_chips() {
-    let registry = registry::families().expect("Could not retrieve chip family registry");
+    let registry = probe_rs::config::families().expect("Could not retrieve chip family registry");
     for chip_family in registry {
         println!("{}\n    Variants:", chip_family.name);
         for variant in chip_family.variants.iter() {
