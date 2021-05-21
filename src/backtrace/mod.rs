@@ -26,7 +26,9 @@ pub(crate) fn print(
     live_functions: &HashSet<&str>,
     settings: &Settings,
 ) -> anyhow::Result<Outcome> {
-    let unwind = unwind::target(core, debug_frame, vector_table, sp_ram_region)?;
+    let unwind = unwind::target(core, debug_frame, vector_table, sp_ram_region);
+
+    // TODO check for Ouptut::processing_error here and print something useful
 
     let frames = symbolicate::frames(
         &unwind.raw_frames,

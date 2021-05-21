@@ -1,6 +1,6 @@
 //! unwind target's program
 
-use anyhow::{bail, ensure, Context as _};
+use anyhow::{anyhow, Context as _};
 use gimli::{
     BaseAddresses, DebugFrame, LittleEndian, UninitializedUnwindContext, UnwindSection as _,
 };
@@ -18,62 +18,86 @@ static MISSING_DEBUG_INFO: &str = "debug information is missing. Likely fixes:
 2. use a recent version of the `cortex-m` crates (e.g. cortex-m 0.6.3 or newer). Check versions in Cargo.lock
 3. if linking to C code, compile the C code with the `-g` flag";
 
+
 /// Virtually* unwinds the target's program
 /// \* destructors are not run
-// FIXME(?) this should be "infallible" and return as many frames as possible even in case of IO
-// errors
+// On error, returns all info collected so far in `Output` and the error that occurred
+//                   in `Output::processing_error`
 pub(crate) fn target(
     core: &mut Core,
     debug_frame: &[u8],
     vector_table: &VectorTable,
     sp_ram_region: &Option<RamRegion>,
-) -> anyhow::Result<Output> {
+) -> Output {
+
+    let mut output = Output {
+        corrupted: true,
+        outcome: Outcome::Ok,
+        raw_frames: vec![],
+        processing_error: Ok(()),
+    };
+
+    // returns all info collected until the error occurred and puts the error into `processing_error`
+    macro_rules! unwrap_or_return {
+        ( $e:expr ) => {
+            match $e {
+                Ok(x) => {
+                    x},
+                Err(err) => {
+                    output.processing_error = Err(anyhow!(err));
+
+                    // TODO rm
+                    println!("xoxo {:?}", output);
+
+                    return output
+                },
+            }
+        }
+    }
+
+
     let mut debug_frame = DebugFrame::new(debug_frame, LittleEndian);
     debug_frame.set_address_size(cortexm::ADDRESS_SIZE);
 
-    let mut pc = core.read_core_reg(registers::PC)?;
-    let sp = core.read_core_reg(registers::SP)?;
-    let lr = core.read_core_reg(registers::LR)?;
+    let mut pc = unwrap_or_return!(core.read_core_reg(registers::PC));
+    let sp = unwrap_or_return!(core.read_core_reg(registers::SP));
+    let lr = unwrap_or_return!(core.read_core_reg(registers::LR));
     let base_addresses = BaseAddresses::default();
     let mut unwind_context = UninitializedUnwindContext::new();
-
-    let mut outcome = Outcome::Ok;
     let mut registers = Registers::new(lr, sp, core);
-    let mut raw_frames = vec![];
-    let mut corrupted = true;
 
     loop {
         if cortexm::is_hard_fault(pc, vector_table) {
             assert!(
-                raw_frames.is_empty(),
+                output.raw_frames.is_empty(),
                 "when present HardFault handler must be the first frame we unwind but wasn't"
             );
 
-            outcome = if overflowed_stack(sp, sp_ram_region) {
+            output.outcome = if overflowed_stack(sp, sp_ram_region) {
                 Outcome::StackOverflow
             } else {
                 Outcome::HardFault
             };
         }
 
-        raw_frames.push(RawFrame::Subroutine { pc });
+        output.raw_frames.push(RawFrame::Subroutine { pc });
 
-        let uwt_row = debug_frame
+        let uwt_row = unwrap_or_return!(debug_frame
             .unwind_info_for_address(
                 &base_addresses,
                 &mut unwind_context,
                 pc.into(),
                 DebugFrame::cie_from_offset,
             )
-            .with_context(|| MISSING_DEBUG_INFO)?;
+            .with_context(|| MISSING_DEBUG_INFO));
 
-        let cfa_changed = registers.update_cfa(uwt_row.cfa())?;
+        let cfa_changed = unwrap_or_return!(registers.update_cfa(uwt_row.cfa()));
 
         for (reg, rule) in uwt_row.registers() {
-            registers.update(reg, rule)?;
+            unwrap_or_return!(registers.update(reg, rule));
         }
 
-        let lr = registers.get(registers::LR)?;
+        let lr = unwrap_or_return!(registers.get(registers::LR));
 
         log::debug!("LR={:#010X} PC={:#010X}", lr, pc);
 
@@ -89,31 +113,35 @@ pub(crate) fn target(
 
         // If the frame didn't move, and the program counter didn't change, bail out (otherwise we
         // might print the same frame over and over).
-        corrupted = !cfa_changed && !program_counter_changed;
+        output.corrupted = !cfa_changed && !program_counter_changed;
 
-        if corrupted {
+        if output.corrupted {
             break;
         }
 
         if exception_entry {
-            raw_frames.push(RawFrame::Exception);
+            output.raw_frames.push(RawFrame::Exception);
 
             let fpu = match lr {
                 0xFFFFFFF1 | 0xFFFFFFF9 | 0xFFFFFFFD => false,
                 0xFFFFFFE1 | 0xFFFFFFE9 | 0xFFFFFFED => true,
-                _ => bail!("LR contains invalid EXC_RETURN value {:#010X}", lr),
+                _ => {
+                    output.processing_error = Err(anyhow!("LR contains invalid EXC_RETURN value {:#010X}", lr));
+                    return output;
+                },
             };
 
-            let sp = registers.get(registers::SP)?;
+            let sp = unwrap_or_return!(registers.get(registers::SP));
             let ram_bounds = sp_ram_region
                 .as_ref()
                 .map(|ram_region| ram_region.range.clone())
                 .unwrap_or(cortexm::VALID_RAM_ADDRESS);
-            let stacked = if let Some(stacked) = Stacked::read(registers.core, sp, fpu, ram_bounds)?
+            let stacked = if let Some(stacked) = unwrap_or_return!(
+                Stacked::read(registers.core, sp, fpu, ram_bounds))
             {
                 stacked
             } else {
-                corrupted = true;
+                output.corrupted = true;
                 break;
             };
 
@@ -123,21 +151,18 @@ pub(crate) fn target(
 
             pc = stacked.pc;
         } else {
-            ensure!(
-                cortexm::is_thumb_bit_set(lr),
-                "bug? LR ({:#010x}) didn't have the Thumb bit set",
-                lr
-            );
-
-            pc = cortexm::clear_thumb_bit(lr);
+            if cortexm::is_thumb_bit_set(lr) {
+                pc = cortexm::clear_thumb_bit(lr);
+            } else {
+                output.processing_error = Err(anyhow!(
+                                              "bug? LR ({:#010x}) didn't have the Thumb bit set",
+                                              lr));
+                return output;
+            }
         }
     }
 
-    Ok(Output {
-        corrupted,
-        outcome,
-        raw_frames,
-    })
+    output
 }
 
 #[derive(Debug)]
@@ -145,6 +170,9 @@ pub struct Output {
     pub(crate) corrupted: bool,
     pub(crate) outcome: Outcome,
     pub(crate) raw_frames: Vec<RawFrame>,
+    // will be `Some` if an error occured while putting together the output.
+    // `outcome` and `raw_frames` will contain all info collected until the error occurred.
+    pub(crate) processing_error: anyhow::Result<()>, // TODO this feels clunky?
 }
 
 /// Backtrace frame prior to 'symbolication'
