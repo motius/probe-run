@@ -18,7 +18,6 @@ static MISSING_DEBUG_INFO: &str = "debug information is missing. Likely fixes:
 2. use a recent version of the `cortex-m` crates (e.g. cortex-m 0.6.3 or newer). Check versions in Cargo.lock
 3. if linking to C code, compile the C code with the `-g` flag";
 
-
 /// Virtually* unwinds the target's program
 /// \* destructors are not run
 // On error, returns all info collected so far in `Output` and the error that occurred
@@ -29,7 +28,6 @@ pub(crate) fn target(
     vector_table: &VectorTable,
     sp_ram_region: &Option<RamRegion>,
 ) -> Output {
-
     let mut output = Output {
         corrupted: true,
         outcome: Outcome::Ok,
@@ -41,20 +39,15 @@ pub(crate) fn target(
     macro_rules! unwrap_or_return {
         ( $e:expr ) => {
             match $e {
-                Ok(x) => {
-                    x},
+                Ok(x) => x,
                 Err(err) => {
                     output.processing_error = Err(anyhow!(err));
 
-                    // TODO rm
-                    println!("xoxo {:?}", output);
-
-                    return output
-                },
+                    return output;
+                }
             }
-        }
+        };
     }
-
 
     let mut debug_frame = DebugFrame::new(debug_frame, LittleEndian);
     debug_frame.set_address_size(cortexm::ADDRESS_SIZE);
@@ -126,9 +119,10 @@ pub(crate) fn target(
                 0xFFFFFFF1 | 0xFFFFFFF9 | 0xFFFFFFFD => false,
                 0xFFFFFFE1 | 0xFFFFFFE9 | 0xFFFFFFED => true,
                 _ => {
-                    output.processing_error = Err(anyhow!("LR contains invalid EXC_RETURN value {:#010X}", lr));
+                    output.processing_error =
+                        Err(anyhow!("LR contains invalid EXC_RETURN value {:#010X}", lr));
                     return output;
-                },
+                }
             };
 
             let sp = unwrap_or_return!(registers.get(registers::SP));
@@ -136,8 +130,8 @@ pub(crate) fn target(
                 .as_ref()
                 .map(|ram_region| ram_region.range.clone())
                 .unwrap_or(cortexm::VALID_RAM_ADDRESS);
-            let stacked = if let Some(stacked) = unwrap_or_return!(
-                Stacked::read(registers.core, sp, fpu, ram_bounds))
+            let stacked = if let Some(stacked) =
+                unwrap_or_return!(Stacked::read(registers.core, sp, fpu, ram_bounds))
             {
                 stacked
             } else {
@@ -155,8 +149,9 @@ pub(crate) fn target(
                 pc = cortexm::clear_thumb_bit(lr);
             } else {
                 output.processing_error = Err(anyhow!(
-                                              "bug? LR ({:#010x}) didn't have the Thumb bit set",
-                                              lr));
+                    "bug? LR ({:#010x}) didn't have the Thumb bit set",
+                    lr
+                ));
                 return output;
             }
         }

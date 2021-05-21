@@ -52,8 +52,11 @@ pub(crate) fn print(
             log::warn!("call stack was corrupted; unwinding could not be completed");
         }
         if unwind.processing_error.is_err() {
-            log::error!("error occurred during backtrace creation: {:?}\n\
-                         the backtrace may be incomplete.", unwind.processing_error.unwrap_err());
+            log::error!(
+                "error occurred during backtrace creation: {:?}\n\
+                         the backtrace may be incomplete.",
+                unwind.processing_error.unwrap_err()
+            );
         }
     }
 
