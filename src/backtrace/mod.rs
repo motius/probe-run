@@ -28,8 +28,6 @@ pub(crate) fn print(
 ) -> anyhow::Result<Outcome> {
     let unwind = unwind::target(core, debug_frame, vector_table, sp_ram_region);
 
-    // TODO check for Ouptut::processing_error here and print something useful
-
     let frames = symbolicate::frames(
         &unwind.raw_frames,
         live_functions,
@@ -52,6 +50,10 @@ pub(crate) fn print(
 
         if unwind.corrupted {
             log::warn!("call stack was corrupted; unwinding could not be completed");
+        }
+        if unwind.processing_error.is_err() {
+            log::error!("error occurred during backtrace creation: {:?}\n\
+                         the backtrace may be incomplete.", unwind.processing_error.unwrap_err());
         }
     }
 
