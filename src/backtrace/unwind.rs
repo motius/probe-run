@@ -20,8 +20,9 @@ static MISSING_DEBUG_INFO: &str = "debug information is missing. Likely fixes:
 
 /// Virtually* unwinds the target's program
 /// \* destructors are not run
-// On error, returns all info collected so far in `Output` and the error that occurred
-//                   in `Output::processing_error`
+///
+/// This returns as much info as could be collected, even if the collection is interrupted by an error.
+/// if an error occurred during processing, it is stored in `Output::processing_error`.
 pub(crate) fn target(
     core: &mut Core,
     debug_frame: &[u8],
@@ -36,13 +37,12 @@ pub(crate) fn target(
     };
 
     // returns all info collected until the error occurred and puts the error into `processing_error`
-    macro_rules! unwrap_or_return {
+    macro_rules! unwrap_or_return_output {
         ( $e:expr ) => {
             match $e {
                 Ok(x) => x,
                 Err(err) => {
                     output.processing_error = Err(anyhow!(err));
-
                     return output;
                 }
             }
@@ -52,9 +52,9 @@ pub(crate) fn target(
     let mut debug_frame = DebugFrame::new(debug_frame, LittleEndian);
     debug_frame.set_address_size(cortexm::ADDRESS_SIZE);
 
-    let mut pc = unwrap_or_return!(core.read_core_reg(registers::PC));
-    let sp = unwrap_or_return!(core.read_core_reg(registers::SP));
-    let lr = unwrap_or_return!(core.read_core_reg(registers::LR));
+    let mut pc = unwrap_or_return_output!(core.read_core_reg(registers::PC));
+    let sp = unwrap_or_return_output!(core.read_core_reg(registers::SP));
+    let lr = unwrap_or_return_output!(core.read_core_reg(registers::LR));
     let base_addresses = BaseAddresses::default();
     let mut unwind_context = UninitializedUnwindContext::new();
     let mut registers = Registers::new(lr, sp, core);
@@ -75,7 +75,7 @@ pub(crate) fn target(
 
         output.raw_frames.push(RawFrame::Subroutine { pc });
 
-        let uwt_row = unwrap_or_return!(debug_frame
+        let uwt_row = unwrap_or_return_output!(debug_frame
             .unwind_info_for_address(
                 &base_addresses,
                 &mut unwind_context,
@@ -84,13 +84,13 @@ pub(crate) fn target(
             )
             .with_context(|| MISSING_DEBUG_INFO));
 
-        let cfa_changed = unwrap_or_return!(registers.update_cfa(uwt_row.cfa()));
+        let cfa_changed = unwrap_or_return_output!(registers.update_cfa(uwt_row.cfa()));
 
         for (reg, rule) in uwt_row.registers() {
-            unwrap_or_return!(registers.update(reg, rule));
+            unwrap_or_return_output!(registers.update(reg, rule));
         }
 
-        let lr = unwrap_or_return!(registers.get(registers::LR));
+        let lr = unwrap_or_return_output!(registers.get(registers::LR));
 
         log::debug!("LR={:#010X} PC={:#010X}", lr, pc);
 
@@ -125,13 +125,13 @@ pub(crate) fn target(
                 }
             };
 
-            let sp = unwrap_or_return!(registers.get(registers::SP));
+            let sp = unwrap_or_return_output!(registers.get(registers::SP));
             let ram_bounds = sp_ram_region
                 .as_ref()
                 .map(|ram_region| ram_region.range.clone())
                 .unwrap_or(cortexm::VALID_RAM_ADDRESS);
             let stacked = if let Some(stacked) =
-                unwrap_or_return!(Stacked::read(registers.core, sp, fpu, ram_bounds))
+                unwrap_or_return_output!(Stacked::read(registers.core, sp, fpu, ram_bounds))
             {
                 stacked
             } else {

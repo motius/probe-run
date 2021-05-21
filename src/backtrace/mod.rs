@@ -53,7 +53,7 @@ pub(crate) fn print(
         }
         if unwind.processing_error.is_err() {
             log::error!(
-                "error occurred during backtrace creation: {:?}\n\
+                "error occurred during backtrace creation: {:?}\n               \
                          the backtrace may be incomplete.",
                 unwind.processing_error.unwrap_err()
             );
