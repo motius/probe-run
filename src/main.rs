@@ -42,7 +42,7 @@ const SIGABRT: i32 = 134;
 const TIMEOUT: Duration = Duration::from_secs(1);
 
 /// A Cargo runner for microcontrollers.
-#[derive(StructOpt)]
+#[derive(StructOpt, Debug)]
 #[structopt(name = "probe-run", setting = AppSettings::TrailingVarArg)]
 struct Opts {
     /// List supported chips and exit.
@@ -103,11 +103,13 @@ struct Opts {
 }
 
 fn main() -> anyhow::Result<()> {
-    notmain().map(|code| process::exit(code))
+    let opts: Opts = Opts::from_args();
+    notmain(opts).map(|code| process::exit(code))
 }
 
-fn notmain() -> anyhow::Result<i32> {
-    let opts: Opts = Opts::from_args();
+fn notmain(opts: Opts) -> anyhow::Result<i32> {
+    println!("{:?}", opts);
+
     let verbose = opts.verbose;
 
     defmt_decoder::log::init_logger(verbose >= 1, move |metadata| {
