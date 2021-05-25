@@ -171,12 +171,7 @@ fn notmain() -> anyhow::Result<i32> {
     let ram_region = ram_region;
 
     // TODO use this instead of iterating?
-    // let _: Option<_> = elf.section(".debug_frame")
     let mut highest_ram_addr_in_use = 0;
-    let debug_frame = elf
-        .section_by_name(".debug_frame")
-        .map(|section| section.data())
-        .transpose()?;
     for sect in elf.sections() {
         // If this section resides in RAM, track the highest RAM address in use.
         if let Some(ram) = &ram_region {
@@ -473,9 +468,6 @@ fn notmain() -> anyhow::Result<i32> {
         }
     }
 
-    // TODO can we call this earlier?
-    let debug_frame = debug_frame.ok_or_else(|| anyhow!("`.debug_frame` section not found"))?;
-
     print_separator();
 
     let halted_due_to_signal = exit.load(Ordering::Relaxed);
@@ -489,7 +481,7 @@ fn notmain() -> anyhow::Result<i32> {
 
     let outcome = backtrace::print(
         &mut core,
-        debug_frame,
+        elf.debug_frame,
         &elf,
         &elf.vector_table,
         &sp_ram_region,
