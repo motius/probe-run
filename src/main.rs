@@ -108,8 +108,6 @@ fn main() -> anyhow::Result<()> {
 }
 
 fn notmain(opts: Opts) -> anyhow::Result<i32> {
-    println!("{:?}", opts);
-
     let verbose = opts.verbose;
 
     defmt_decoder::log::init_logger(verbose >= 1, move |metadata| {
