@@ -9,7 +9,7 @@ dependencies = [
  "cpp_demangle",
  "fallible-iterator",
  "gimli",
- "object",
+ "object 0.22.0",
  "rustc-demangle",
  "smallvec",
 ]
@@ -166,8 +166,8 @@ dependencies = [
 
 [[package]]
 name = "defmt-decoder"
-version = "0.2.0"
-source = "git+https://github.com/knurling-rs/defmt?tag=defmt-decoder-v0.2.0#60c6447f8ecbc4ff023378ba6905bcd0de1e679f"
+version = "0.2.1"
+source = "git+https://github.com/knurling-rs/defmt?tag=defmt-decoder-v0.2.1#b61b48918d926f29f3ae4889eb19a1123168aaa3"
 dependencies = [
  "ansi_term 0.12.1",
  "anyhow",
@@ -178,7 +178,7 @@ dependencies = [
  "gimli",
  "leb128",
  "log",
- "object",
+ "object 0.23.0",
  "ryu",
  "semver",
  "serde",
@@ -187,8 +187,8 @@ dependencies = [
 
 [[package]]
 name = "defmt-parser"
-version = "0.2.0"
-source = "git+https://github.com/knurling-rs/defmt?tag=defmt-decoder-v0.2.0#60c6447f8ecbc4ff023378ba6905bcd0de1e679f"
+version = "0.2.1"
+source = "git+https://github.com/knurling-rs/defmt?tag=defmt-decoder-v0.2.1#b61b48918d926f29f3ae4889eb19a1123168aaa3"
 
 [[package]]
 name = "diff"
@@ -458,6 +458,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "object"
+version = "0.23.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a9a7ab5d64814df0fe4a4b5ead45ed6c5f181ee3ff04ba344313a6c80446c5d4"
+
+[[package]]
 name = "output_vt100"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -518,7 +524,7 @@ dependencies = [
  "lazy_static",
  "log",
  "num-traits",
- "object",
+ "object 0.22.0",
  "probe-rs-t2rust",
  "rusb",
  "scroll",
@@ -568,7 +574,7 @@ dependencies = [
  "gimli",
  "hidapi",
  "log",
- "object",
+ "object 0.22.0",
  "pretty_assertions",
  "probe-rs",
  "probe-rs-rtt",
