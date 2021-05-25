@@ -148,9 +148,7 @@ fn notmain() -> anyhow::Result<i32> {
     let elf_path = opts.elf.as_deref().unwrap();
     let chip = opts.chip.as_deref().unwrap();
     let bytes = fs::read(elf_path)?;
-    let elf = ElfFile::parse(&bytes)?;
-
-    // let processed_elf = ProcessedElf::from_elf(elf);
+    let elf = ProcessedElf::from_elf(&bytes)?;
 
     let target = probe_rs::config::registry::get_target_by_name(chip)?;
 
