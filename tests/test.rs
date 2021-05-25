@@ -1,38 +1,20 @@
 use insta;
-use std::process::Stdio;
-use std::io::Read;
+
+/*
+NOTE: These tests need to be run *manually*, e.g.
+- plug nrf52840 DK in
+- run `cargo test successful_run_has_no_backtrace`
+*/
 
 #[test]
+// this test should not be run by default, as it requires the target hardware to be present
+#[ignore]
 fn successful_run_has_no_backtrace() {
-    /*
-    let test_opts = Opts {
-        list_chips: false,
-        list_probes: false,
-        chip: Some("nRF52840_xxAA"),
-        probe: None,
-        speed: None,
-        elf: Some("test_elfs/hello"),
-        no_flash: false,
-        connect_under_reset: false,
-        verbose: 0,
-        version: false,
-        force_backtrace: false,
-        max_backtrace_len: 50,
-        shorten_paths: false,
-        _rest: [],
-    };
-
-
-    probe_run.notmain(test_opts);
-    */
-
     let command = std::process::Command::new("cargo")
-        .args(&["run", ".."])
+        .args(&["run", "--", "--chip", "nRF52840_xxAA", "tests/test_elfs/hello"])
         .output()
         .expect("failed to execute process");
 
-    let stdout_buffer = std::str::from_utf8(&command.stderr);
-
-    println!("xoxo {:?}", stdout_buffer);
-
+    let pobe_run_output = std::str::from_utf8(&command.stderr).unwrap();
+    insta::assert_snapshot!(pobe_run_output);
 }

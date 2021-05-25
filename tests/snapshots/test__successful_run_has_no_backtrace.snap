@@ -1,0 +1,11 @@
+---
+source: tests/test.rs
+expression: pobe_run_output
+
+---
+    Finished dev [unoptimized + debuginfo] target(s) in 0.08s
+     Running `target/debug/probe-run --chip nRF52840_xxAA tests/test_elfs/hello`
+(HOST) INFO  flashing program (30.22 KiB)
+(HOST) INFO  success!
+(HOST) INFO  device halted without error
+
