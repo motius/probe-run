@@ -3,7 +3,5 @@ source: tests/test.rs
 expression: run_output
 
 ---
-(HOST) INFO  flashing program (30.22 KiB)
-(HOST) INFO  success!
-(HOST) INFO  device halted without error
+Error: No such file or directory (os error 2)
 
