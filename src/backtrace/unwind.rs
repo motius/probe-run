@@ -9,8 +9,8 @@ use probe_rs::{config::RamRegion, Core};
 use crate::{
     backtrace::Outcome,
     cortexm,
-    registers::{self, Registers},
     elf::ProcessedElf,
+    registers::{self, Registers},
     stacked::Stacked,
 };
 
@@ -26,7 +26,7 @@ static MISSING_DEBUG_INFO: &str = "debug information is missing. Likely fixes:
 pub(crate) fn target(
     core: &mut Core,
     elf: &ProcessedElf,
-    sp_ram_region: &Option<RamRegion>,
+    active_ram_region: &Option<RamRegion>,
 ) -> anyhow::Result<Output> {
     let mut debug_frame = DebugFrame::new(elf.debug_frame, LittleEndian);
     debug_frame.set_address_size(cortexm::ADDRESS_SIZE);
@@ -49,7 +49,7 @@ pub(crate) fn target(
                 "when present HardFault handler must be the first frame we unwind but wasn't"
             );
 
-            outcome = if overflowed_stack(sp, sp_ram_region) {
+            outcome = if overflowed_stack(sp, active_ram_region) {
                 Outcome::StackOverflow
             } else {
                 Outcome::HardFault
@@ -105,7 +105,7 @@ pub(crate) fn target(
             };
 
             let sp = registers.get(registers::SP)?;
-            let ram_bounds = sp_ram_region
+            let ram_bounds = active_ram_region
                 .as_ref()
                 .map(|ram_region| ram_region.range.clone())
                 .unwrap_or(cortexm::VALID_RAM_ADDRESS);
@@ -161,11 +161,11 @@ impl RawFrame {
     }
 }
 
-fn overflowed_stack(sp: u32, sp_ram_region: &Option<RamRegion>) -> bool {
-    if let Some(sp_ram_region) = sp_ram_region {
+fn overflowed_stack(sp: u32, active_ram_region: &Option<RamRegion>) -> bool {
+    if let Some(active_ram_region) = active_ram_region {
         // NOTE stack is full descending; meaning the stack pointer can be
         // `ORIGIN(RAM) + LENGTH(RAM)`
-        let range = sp_ram_region.range.start..=sp_ram_region.range.end;
+        let range = active_ram_region.range.start..=active_ram_region.range.end;
         !range.contains(&sp)
     } else {
         log::warn!("no RAM region appears to contain the stack; cannot determine if this was a stack overflow");
