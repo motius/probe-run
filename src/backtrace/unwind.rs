@@ -9,8 +9,9 @@ use probe_rs::{config::RamRegion, Core};
 use crate::{
     cortexm,
     registers::{self, Registers},
+    sketch::ProcessedElf,
     stacked::Stacked,
-    Outcome, VectorTable,
+    Outcome,
 };
 
 static MISSING_DEBUG_INFO: &str = "debug information is missing. Likely fixes:
@@ -24,11 +25,10 @@ static MISSING_DEBUG_INFO: &str = "debug information is missing. Likely fixes:
 // errors
 pub(crate) fn target(
     core: &mut Core,
-    debug_frame: &[u8],
-    vector_table: &VectorTable,
+    elf: &ProcessedElf,
     sp_ram_region: &Option<RamRegion>,
 ) -> anyhow::Result<Output> {
-    let mut debug_frame = DebugFrame::new(debug_frame, LittleEndian);
+    let mut debug_frame = DebugFrame::new(elf.debug_frame, LittleEndian);
     debug_frame.set_address_size(cortexm::ADDRESS_SIZE);
 
     let mut pc = core.read_core_reg(registers::PC)?;
@@ -43,7 +43,7 @@ pub(crate) fn target(
     let mut corrupted = true;
 
     loop {
-        if cortexm::is_hard_fault(pc, vector_table) {
+        if cortexm::is_hard_fault(pc, &elf.vector_table) {
             assert!(
                 raw_frames.is_empty(),
                 "when present HardFault handler must be the first frame we unwind but wasn't"
