@@ -1,0 +1,20 @@
+---
+source: tests/test.rs
+expression: run_output
+
+---
+  (HOST) INFO  flashing program (30.22 KiB)
+  (HOST) INFO  success!
+────────────────────────────────────────────────────────────────────────────────
+INFO:hello -- Hello, world!
+────────────────────────────────────────────────────────────────────────────────
+stack backtrace:
+   0: __bkpt
+   1: hello::__cortex_m_rt_main
+        at /Users/lottesteenbrink/ferrous/embedded-trainings-2020/beginner/apps/src/bin/hello.rs:15:5
+   2: main
+        at /Users/lottesteenbrink/ferrous/embedded-trainings-2020/beginner/apps/src/bin/hello.rs:8:1
+   3: Reset
+        at /Users/lottesteenbrink/.cargo/registry/src/github.com-1ecc6299db9ec823/cortex-m-rt-0.6.12/src/lib.rs:518:15
+  (HOST) INFO  device halted without error
+
