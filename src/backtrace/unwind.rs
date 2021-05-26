@@ -7,11 +7,11 @@ use gimli::{
 use probe_rs::{config::RamRegion, Core};
 
 use crate::{
+    backtrace::Outcome,
     cortexm,
     registers::{self, Registers},
     sketch::ProcessedElf,
     stacked::Stacked,
-    Outcome,
 };
 
 static MISSING_DEBUG_INFO: &str = "debug information is missing. Likely fixes:
